@@ -1,0 +1,81 @@
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Block</title>
+    <!-- style -->
+    <style>
+      .flex-center {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .display-block {
+        display: block;
+      }
+      #score_details > li {
+        display: block !important;
+        width: 100%;
+      }
+      #score_details{
+        background-color: lemonchiffon;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- structure -->
+    <div class="flex-center size-full">
+    <div>
+        <h1 class="heading display-block">Block</h1>
+        <section id="scoreboard">
+          <ul id="score_details"></ul>
+        </section>
+        <div id="container">
+          <div id="grid"></div>
+        </div>
+    </div>
+    </div>
+  </body>
+  <!-- script -->
+  <script>
+    try {
+      console.log("blockjs");
+      let _score = 0;
+      let _size = 2;
+      let _level = _size - 1;
+
+      let _board_size = Math.pow(_size, 2);
+      let _board = Array(_board_size)
+        .fill(0)
+        .map((x, index) => index + 1);
+
+      const _score_board_detail = {
+        _score,
+        _size,
+        _board,
+        _board_size,
+        _level,
+      };
+
+      // print score values
+      const score_details = document.getElementById("score_details");
+      Object.keys(_score_board_detail).forEach((value) => {
+        const list_node = document.createElement("li");
+        list_node.appendChild(
+          document.createTextNode(`${value}: ${_score_board_detail[value]}`)
+        );
+        score_details.appendChild(list_node);
+      });
+      for (let index = 0; index < 4; index++) {
+       const interval = setInterval(() => {
+        _size++
+       },[1000])
+       if(index>=4){
+        clearInterval(interval)
+       }
+      }
+    } catch (error) {
+      console.error({ error });
+    }
+  </script>
+</html>
