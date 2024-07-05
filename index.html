@@ -2,9 +2,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Block</title>
+    <title>block</title>
     <!-- style -->
     <style>
+      html, body{
+        line-height: 1.25rem;
+      }
       .flex-center {
         display: flex;
         align-items: center;
@@ -17,7 +20,7 @@
         display: block !important;
         width: 100%;
       }
-      #score_details{
+      #score_details {
         background-color: lemonchiffon;
       }
     </style>
@@ -25,21 +28,40 @@
   <body>
     <!-- structure -->
     <div class="flex-center size-full">
-    <div>
-        <h1 class="heading display-block">Block</h1>
+      <div>
+        <h1 class="heading display-block">block</h1>
         <section id="scoreboard">
           <ul id="score_details"></ul>
+        </section>
+        <section>
+          <h2>unique posibilities of cards</h2>
+          <p id="cards-pos"></p>
         </section>
         <div id="container">
           <div id="grid"></div>
         </div>
-    </div>
+      </div>
     </div>
   </body>
   <!-- script -->
   <script>
     try {
       console.log("blockjs");
+
+      // globals
+
+
+      // constant data
+      const CARD_FIGURE = ["A","K","Q","J","10","9","8","7","6","5","4","3","2"]
+      const CARD_TYPE = ["S","H","D","C"]
+      const CARDS  = CARD_FIGURE.map(card => CARD_TYPE.map(type => `(${type}, ${card})`)).flat()
+
+      const cards_posibilities = document.querySelector("#cards-pos")
+      cards_posibilities.innerHTML = `${CARDS} are the possible combinations (total ${CARDS.length}) where cards are of type ${CARD_TYPE} and have faces among ${CARD_FIGURE}`
+
+
+      
+
       let _score = 0;
       let _size = 2;
       let _level = _size - 1;
@@ -66,14 +88,8 @@
         );
         score_details.appendChild(list_node);
       });
-      for (let index = 0; index < 4; index++) {
-       const interval = setInterval(() => {
-        _size++
-       },[1000])
-       if(index>=4){
-        clearInterval(interval)
-       }
-      }
+
+
     } catch (error) {
       console.error({ error });
     }
