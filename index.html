@@ -5,8 +5,18 @@
     <title>block</title>
     <!-- style -->
     <style>
-      html, body{
-        line-height: 1.25rem;
+      *,
+      *::before,
+      *::after {
+        box-sizing: inherit;
+      }
+      html,
+      body {
+        line-height: 1.5rem;
+        padding: 8px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+          "Segoe UI Symbol";
       }
       .flex-center {
         display: flex;
@@ -20,8 +30,30 @@
         display: block !important;
         width: 100%;
       }
-      #score_details {
-        background-color: lemonchiffon;
+      .cards {
+        display: inline-block;
+        height: 100px;
+        font-size: 2rem;
+        background-color: white;
+        border-radius: 0.25rem;
+        border: 1px solid silver;
+        position: relative;
+      }
+      .cards:hover {
+        background-color: cornsilk;
+        cursor: pointer;
+      }
+      .styled-information {
+        background: cornsilk;
+        padding: 1rem;
+        border-radius: 4px;
+        border: 1px solid silver;
+      }
+      .red {
+        color: red;
+      }
+      .black {
+        color: black;
       }
     </style>
   </head>
@@ -31,42 +63,95 @@
       <div>
         <h1 class="heading display-block">block</h1>
         <section id="scoreboard">
-          <ul id="score_details"></ul>
+          <ul class="styled-information" id="score_details"></ul>
         </section>
         <section>
           <h2>unique posibilities of cards</h2>
           <p id="cards-pos"></p>
         </section>
-        <div id="container">
-          <div id="grid"></div>
-        </div>
       </div>
+    </div>
+    <div id="container">
+      <div id="grid"></div>
     </div>
   </body>
   <!-- script -->
   <script>
     try {
-      console.log("blockjs");
-
-      // globals
-
-
+      console.log("Welcome to block game");
+      /* datastore */
       // constant data
-      const CARD_FIGURE = ["A","K","Q","J","10","9","8","7","6","5","4","3","2"]
-      const CARD_TYPE = ["S","H","D","C"]
-      const CARDS  = CARD_FIGURE.map(card => CARD_TYPE.map(type => `(${type}, ${card})`)).flat()
+      const CARD_FIGURE = [
+        { face: "A", faceDescription: "ACE" },
+        { face: "K", faceDescription: "KING" },
+        { face: "Q", faceDescription: "QUEEN" },
+        { face: "J", faceDescription: "JACK" },
+        { face: "10", faceDescription: "TEN" },
+        { face: "9", faceDescription: "NINE" },
+        { face: "8", faceDescription: "EIGHT" },
+        { face: "7", faceDescription: "SEVEN" },
+        { face: "6", faceDescription: "SIX" },
+        { face: "5", faceDescription: "FIVE" },
+        { face: "4", faceDescription: "FOUR" },
+        { face: "3", faceDescription: "THREE" },
+        { face: "2", faceDescription: "TWO" },
+      ];
+      const CARD_TYPE = [
+        { type: "♠", color: "black", typeDescription: "SPADE" },
+        { type: "♣", color: "black", typeDescription: "CLUB" },
+        { type: "♦", color: "red", typeDescription: "DIAMOND" },
+        { type: "♥", color: "red", typeDescription: "HEART" },
+      ];
+      /* utils */
+      // globals
+      const getClone = (value) => JSON.parse(JSON.stringify(value));
 
-      const cards_posibilities = document.querySelector("#cards-pos")
-      cards_posibilities.innerHTML = `${CARDS} are the possible combinations (total ${CARDS.length}) where cards are of type ${CARD_TYPE} and have faces among ${CARD_FIGURE}`
+      const randomizeVaue = () => Math.random() * 10000;
 
+      const shuffleArray = (array) =>
+        array
+          .map((x) => ({ value: x, randomise: randomizeVaue() }))
+          .sort((x, y) => x.randomise - y.randomise)
+          .map((x) => x.value);
 
-      
+      const getFlatStringFrom = (array, key) =>
+        array.map((value) => value[key]).toString();
+
+      const CARDS = CARD_FIGURE.map((face_details, faceIndex) =>
+        CARD_TYPE.map((type_details, typeIndex) => ({
+          ...face_details,
+          ...type_details,
+          id: +`${faceIndex + 1}.${typeIndex + 1}`,
+        }))
+      ).flat();
+      console.log({ CARDS });
+      const CARDS_SET = CARDS.map(
+        ({ type, face, id }) => `(${type}, ${face})`
+      ).join(", ");
+      const TOTAL_CARDS = CARDS.length;
+
+      /* summary */
+
+      const cards_posibilities = document.querySelector("#cards-pos");
+      cards_posibilities.textContent = `${CARDS_SET} are the possible combinations (total ${TOTAL_CARDS}) where cards are of type ${getFlatStringFrom(
+        CARD_TYPE,
+        "typeDescription"
+      )} and have faces among ${getFlatStringFrom(
+        CARD_FIGURE,
+        "faceDescription"
+      )}`;
+      cards_posibilities.setAttribute("class", "styled-information");
+
+      /* cards bock */
+
+      let _level = 1;
+      let difficulty_mode = [2, 4, 6];
+      let _size = difficulty_mode[_level - 1];
 
       let _score = 0;
-      let _size = 2;
-      let _level = _size - 1;
-
+      // 4, 16, 64
       let _board_size = Math.pow(_size, 2);
+      let _unique_card_count = _board_size / 2;
       let _board = Array(_board_size)
         .fill(0)
         .map((x, index) => index + 1);
@@ -79,17 +164,75 @@
         _level,
       };
 
+      const generateCardBoard = () => {
+        try {
+          // take unique cards
+          // randomise them
+          let _randomised = shuffleArray(getClone(CARDS)).splice(
+            0,
+            _unique_card_count
+          );
+          let _board_values = shuffleArray([..._randomised, ..._randomised]);
+          return _board_values.map((value, index) => ({
+            ...value,
+            isClicked: false,
+            isMatched: false,
+            uid: index,
+          }));
+        } catch (error) {
+          console.error({ error });
+          return [];
+        }
+      };
+
+      let generated_values = generateCardBoard();
+      console.log(generated_values);
+
       // print score values
       const score_details = document.getElementById("score_details");
       Object.keys(_score_board_detail).forEach((value) => {
         const list_node = document.createElement("li");
         list_node.appendChild(
-          document.createTextNode(`${value}: ${_score_board_detail[value]}`)
+          document.createTextNode(`${value}:${_score_board_detail[value]}`)
         );
         score_details.appendChild(list_node);
       });
 
-
+      const grid = document.querySelector("#grid");
+      grid.setAttribute(
+        "style",
+        `display: flex; flex-wrap: wrap; justify-content: space-between;`
+      );
+      let buttons_card;
+      function createUpdatedGrid() {
+        grid.innerHTML = null;
+        generated_values.forEach((element) => {
+          const isVisible = element.isClicked || element.isMatched;
+          const button_node = document.createElement("button");
+          let magic_number = Math.round(100 / _size);
+          button_node.style = `flex: 0 0 ${magic_number}%; /* Same as width, sets height */`;
+          button_node.appendChild(
+            element?.isClicked
+              ? document.createTextNode(`${element.type} ${element.face}`)
+              : document.createTextNode(`--`)
+          );
+          button_node.onclick = () => {
+            let findIndex = generated_values.findIndex(
+              (value) => value.uid === element.uid
+            );
+            console.log({ findIndex });
+            generated_values[findIndex].isClicked = true;
+            let timeoutId = setTimeout(() => {
+              generated_values[findIndex].isClicked = false;
+              createUpdatedGrid();
+            }, 3000);
+            createUpdatedGrid();
+          };
+          button_node.className = `cards ${isVisible && element.color}`;
+          grid.appendChild(button_node);
+        });
+      }
+      createUpdatedGrid();
     } catch (error) {
       console.error({ error });
     }
